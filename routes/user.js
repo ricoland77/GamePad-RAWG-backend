@@ -11,6 +11,7 @@ const User = require("../models/User");
 router.post("/user/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
+    // console.log(req.body);
 
     if (!username) {
       return res.status(400).json({ message: "Username is not filled in" });
@@ -20,11 +21,16 @@ router.post("/user/signup", async (req, res) => {
       return res.status(400).json({ message: "Create a password please" });
     }
 
+    //venir vérifier qu'on envoie un mail !
+    if (!email) {
+      return res.status(400).json({ message: "Email is not filled in" });
+    }
+
     const user = await User.findOne({ email: email }); // recherche d'un user par email
 
     // si user existe déjà, je return le message
     if (user) {
-      return res.status(400).json({ message: "User all ready exist" });
+      return res.status(400).json({ message: "This email already exist" });
     }
 
     const salt = uid2(16); // générer un salt
@@ -41,8 +47,7 @@ router.post("/user/signup", async (req, res) => {
       hash: hash,
     });
 
-    await newUser.save(); // sauvegarde de newUser dans la BDD
-
+    await newUser.save();
     res.status(200).json({ message: "Your account has been created" });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -51,17 +56,12 @@ router.post("/user/signup", async (req, res) => {
 
 // route pour se connecter
 router.post("/user/login", async (req, res) => {
-  const { email, password } = req.body; // destructuring d'objet, création des variables username, etc.
-
-  const user = await User.findOne({ email: email }); // recherche par email pour vérifier que le user soit bien déjà inscrit
-
-  // si le user n'existe pas
+  const { email, password } = req.body;
+  const user = await User.findOne({ email: email });
   if (!user) {
     return res.status(200).json({ message: "You are NOT allowed to log in" });
   }
-
   const newHash = SHA256(user.salt + password).toString(encBase64);
-
   if (newHash === user.hash) {
     res.status(200).json({
       _id: user._id,
