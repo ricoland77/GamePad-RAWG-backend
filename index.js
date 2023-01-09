@@ -33,6 +33,10 @@ app.use(strategyRoutes);
 app.use(rpgRoutes);
 app.use(favoritesRoutes);
 
+app.get("/", (req, res) => {
+  res.json({ message: "Welcome to my project 🚀🚀🚀" });
+});
+
 app.all("*", function (req, res) {
   res.json({ message: "this page does not exist" });
 });
